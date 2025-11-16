@@ -1,3 +1,4 @@
+# Custom runtime errors for EasyML
 # stores other libraries' math equations here for us
 """
 Utility functions for EasyLM.
@@ -68,3 +69,4 @@ def design_from_df(df, predictors, add_intercept=True):
         return add_constant(X, prepend=True)
     else:
         return check_array(X, "X")
+

@@ -1,3 +1,5 @@
+# runtime errors for our model.
+
 # unique errors for our model
 """
 Custom exceptions for EasyLM.

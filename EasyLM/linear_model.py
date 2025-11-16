@@ -1,3 +1,4 @@
+# Custom runtime errors for EasyML
 """
 LinearModel: Ordinary Least Squares implementation similar to R's lm,
 refactored to avoid warnings under all conditions.
@@ -209,3 +210,4 @@ class LinearModel(BaseModel):
         }
 
         return self.summary_formatter.format(coef_table, info)
+
