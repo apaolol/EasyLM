@@ -1,292 +1,261 @@
 """
-PlotHelper: plotting utilities for model comparison.
+PlotHelper: plotting utilities for comparing regression models.
 """
+
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
+from typing import List, Optional
 
 
 class PlotHelper:
     """
-    Visualization tools for comparing multiple models.
-    Focuses on coefficient comparison and model fit visualization.
+    Simple plotting toolkit for comparing multiple regression models.
+    
+    Main features:
+    - Compare coefficients across models
+    - Compare fit metrics (AIC, BIC, R²)
+    - Visualize predictions vs observed values
+    - Check residual patterns
     """
-
+    
+    # HELPER METHODS
+    
     @staticmethod
-    def plot_coefficients_comparison(models, labels=None, ax=None):
-        """
-        Compare coefficients across multiple models with a grouped bar chart.
-        
-        Parameters:
-        -----------
-        models : list
-            List of fitted model objects with params_ attribute
-        labels : list, optional
-            Labels for each model. If None, uses "Model 1", "Model 2", etc.
-        ax : matplotlib axes, optional
-            Axes to plot on. If None, creates new figure.
-            
-        Returns:
-        --------
-        ax : matplotlib axes
-        """
+    def _get_model_name(model, index):
+        """Get model name, or generate one if not available."""
+        return getattr(model, 'name', f'Model {index+1}')
+    
+    @staticmethod
+    def _extract_coefficients(model):
+        """Get coefficient array from model."""
+        if hasattr(model, 'params_'):
+            return np.asarray(model.params_)
+        if hasattr(model, '_stats') and model._stats is not None:
+            return np.asarray(model._stats.coefficients)
+        return np.array([np.nan])
+    
+    @staticmethod
+    def _get_metric_value(model, metric_name):
+        """Get a metric value (aic, bic, r_squared) from model."""
+        try:
+            if hasattr(model, metric_name):
+                attr = getattr(model, metric_name)
+                if callable(attr):
+                    return float(attr())
+                return float(attr)
+            return np.nan
+        except Exception:
+            return np.nan
+    
+    # PLOTTING METHODS
+    
+    @staticmethod
+    def plot_coefficients_comparison(models, labels=None, ax=None, figsize=(10, 6), **kwargs):
+        """Compare coefficients across models with bar chart."""
         if ax is None:
-            fig, ax = plt.subplots(figsize=(10, 6))
+            fig, ax = plt.subplots(figsize=figsize)
         
         if labels is None:
-            labels = [f"Model {i+1}" for i in range(len(models))]
+            labels = [PlotHelper._get_model_name(m, i) for i, m in enumerate(models)]
         
-        # Get coefficients from all models
-        max_params = max(len(m.params_) for m in models)
-        coef_data = {}
+        # Extract coefficients and pad to same length
+        all_coefs = [PlotHelper._extract_coefficients(m) for m in models]
+        max_len = max(len(c) for c in all_coefs)
         
-        for i, (model, label) in enumerate(zip(models, labels)):
-            coefs = model.params_
-            # Pad with NaN if different lengths
-            padded = np.pad(
-                coefs,
-                (0, max_params - len(coefs)),
-                constant_values=np.nan
-            )
-            coef_data[label] = padded
+        padded_coefs = {}
+        for label, coefs in zip(labels, all_coefs):
+            padded = np.full(max_len, np.nan)
+            padded[:len(coefs)] = coefs
+            padded_coefs[label] = padded
         
-        # Create grouped bar chart
-        df = pd.DataFrame(coef_data)
-        x = np.arange(len(df))
-        width = 0.8 / len(models)
+        # Create bar chart
+        df = pd.DataFrame(padded_coefs)
+        x_positions = np.arange(max_len)
+        bar_width = 0.8 / len(models)
         
-        for i, col in enumerate(df.columns):
-            offset = (i - len(models) / 2 + 0.5) * width
-            ax.bar(x + offset, df[col], width, label=col, alpha=0.8)
+        # Build bar_kwargs directly from kwargs, with defaults
+        bar_kwargs = {'alpha': kwargs.get('alpha', 0.8)}
+        if 'color' in kwargs:
+            bar_kwargs['color'] = kwargs['color']
+        if 'edgecolor' in kwargs:
+            bar_kwargs['edgecolor'] = kwargs['edgecolor']
+        
+        for i, column in enumerate(df.columns):
+            offset = (i - len(models)/2 + 0.5) * bar_width
+            ax.bar(x_positions + offset, df[column], bar_width, label=column, **bar_kwargs)
         
         ax.set_xlabel('Coefficient Index')
-        ax.set_ylabel('Coefficient Value')
-        ax.set_title('Coefficient Comparison Across Models')
-        ax.set_xticks(x)
-        ax.set_xticklabels([f'β{i}' for i in range(len(df))])
-        ax.legend()
+        ax.set_ylabel('Value')
+        ax.set_title('Coefficient Comparison')
+        ax.set_xticks(x_positions)
+        ax.set_xticklabels([f'β{i}' for i in range(max_len)])
         ax.axhline(y=0, color='black', linestyle='-', linewidth=0.5)
+        ax.legend()
         ax.grid(axis='y', alpha=0.3)
         
         return ax
-
+    
     @staticmethod
-    def plot_model_metrics(models, labels=None, ax=None):
-        """
-        Compare model fit metrics (AIC, BIC, R²) with a grouped bar chart.
-        
-        Parameters:
-        -----------
-        models : list
-            List of fitted model objects with aic(), bic(), r_squared() methods
-        labels : list, optional
-            Labels for each model. If None, uses "Model 1", "Model 2", etc.
-        ax : matplotlib axes, optional
-            Axes to plot on. If None, creates new figure.
-            
-        Returns:
-        --------
-        ax : matplotlib axes
-        """
+    def plot_model_metrics(models, labels=None, ax=None, figsize=(10, 6), **kwargs):
+        """Compare AIC, BIC, and R² across models."""
         if ax is None:
-            fig, ax = plt.subplots(figsize=(10, 6))
+            fig, ax = plt.subplots(figsize=figsize)
         
         if labels is None:
-            labels = [f"Model {i+1}" for i in range(len(models))]
+            labels = [PlotHelper._get_model_name(m, i) for i, m in enumerate(models)]
         
-        # Collect metrics
-        metrics = {
-            'AIC': [],
-            'BIC': [],
-            'R²': []
-        }
+        # Extract metrics
+        aic_values = [PlotHelper._get_metric_value(m, 'aic') for m in models]
+        bic_values = [PlotHelper._get_metric_value(m, 'bic') for m in models]
+        r2_values = [PlotHelper._get_metric_value(m, 'r_squared') for m in models]
         
-        for model in models:
-            metrics['AIC'].append(model.aic())
-            metrics['BIC'].append(model.bic())
-            metrics['R²'].append(model.r_squared())
+        # Build bar_kwargs directly from kwargs, with defaults
+        bar_kwargs = {'alpha': kwargs.get('alpha', 0.8)}
+        if 'edgecolor' in kwargs:
+            bar_kwargs['edgecolor'] = kwargs['edgecolor']
         
         # Create grouped bar chart
-        x = np.arange(len(labels))
+        x_positions = np.arange(len(labels))
         width = 0.25
         
-        ax.bar(x - width, metrics['AIC'], width, label='AIC', alpha=0.8)
-        ax.bar(x, metrics['BIC'], width, label='BIC', alpha=0.8)
-        ax.bar(x + width, metrics['R²'], width, label='R²', alpha=0.8)
+        ax.bar(x_positions - width, aic_values, width, label='AIC', **bar_kwargs)
+        ax.bar(x_positions, bic_values, width, label='BIC', **bar_kwargs)
+        ax.bar(x_positions + width, r2_values, width, label='R²', **bar_kwargs)
         
         ax.set_xlabel('Models')
         ax.set_ylabel('Metric Value')
-        ax.set_title('Model Fit Metrics Comparison')
-        ax.set_xticks(x)
-        ax.set_xticklabels(labels)
+        ax.set_title('Model Fit Metrics')
+        ax.set_xticks(x_positions)
+        ax.set_xticklabels(labels, rotation=45, ha='right')
         ax.legend()
         ax.grid(axis='y', alpha=0.3)
         
         return ax
-
+    
     @staticmethod
-    def plot_predictions_comparison(models, X, y, labels=None, ax=None):
-        """
-        Compare predictions from multiple models against observed values.
-        
-        Parameters:
-        -----------
-        models : list
-            List of fitted model objects
-        X : array-like
-            Feature matrix for predictions
-        y : array-like
-            Observed values
-        labels : list, optional
-            Labels for each model. If None, uses "Model 1", "Model 2", etc.
-        ax : matplotlib axes, optional
-            Axes to plot on. If None, creates new figure.
-            
-        Returns:
-        --------
-        ax : matplotlib axes
-        """
+    def plot_predictions_comparison(models, X, y, labels=None, ax=None, figsize=(10, 6), **kwargs):
+        """Compare model predictions against observed values."""
         if ax is None:
-            fig, ax = plt.subplots(figsize=(10, 6))
+            fig, ax = plt.subplots(figsize=figsize)
+        
+        # Prepare data
+        X = np.asarray(X)
+        y = np.asarray(y).ravel()
+        if X.ndim == 1:
+            X = X.reshape(-1, 1)
         
         if labels is None:
-            labels = [f"Model {i+1}" for i in range(len(models))]
+            labels = [PlotHelper._get_model_name(m, i) for i, m in enumerate(models)]
         
         # Plot observed values
         x_vals = np.arange(len(y))
-        ax.scatter(
-            x_vals,
-            y,
-            color='black',
-            label='Observed',
-            alpha=0.6,
-            s=50,
-            marker='o'
-        )
+        ax.scatter(x_vals, y, color='black', label='Observed', alpha=0.6, s=50)
+        
+        # Build plot_kwargs directly from kwargs, with defaults
+        plot_kwargs = {
+            'alpha': kwargs.get('alpha', 0.7),
+            'linewidth': kwargs.get('linewidth', 2),
+            'linestyle': kwargs.get('linestyle', '-')
+        }
+        if 'marker' in kwargs:
+            plot_kwargs['marker'] = kwargs['marker']
         
         # Plot predictions from each model
         colors = plt.cm.Set2(np.linspace(0, 1, len(models)))
         for model, label, color in zip(models, labels, colors):
-            predictions = model.predict(X)
-            ax.plot(
-                x_vals,
-                predictions,
-                label=label,
-                alpha=0.7,
-                linewidth=2,
-                color=color
-            )
+            try:
+                predictions = model.predict(X).ravel()
+                ax.plot(x_vals, predictions, label=label, color=color, **plot_kwargs)
+            except Exception as e:
+                print(f"Warning: Could not plot {label}: {e}")
+                continue
         
         ax.set_xlabel('Observation Index')
         ax.set_ylabel('Value')
-        ax.set_title('Model Predictions vs Observed Values')
+        ax.set_title('Predictions vs Observed')
         ax.legend()
         ax.grid(alpha=0.3)
         
         return ax
-
+    
     @staticmethod
-    def plot_residuals_comparison(models, X, y, labels=None):
-        """
-        Compare residual patterns from multiple models in subplots.
+    def plot_residuals_comparison(models, X, y, labels=None, figsize=None, **kwargs):
+        """Compare residual patterns from multiple models."""
+        # Prepare data
+        X = np.asarray(X)
+        y = np.asarray(y).ravel()
+        if X.ndim == 1:
+            X = X.reshape(-1, 1)
         
-        Parameters:
-        -----------
-        models : list
-            List of fitted model objects
-        X : array-like
-            Feature matrix for predictions
-        y : array-like
-            Observed values
-        labels : list, optional
-            Labels for each model. If None, uses "Model 1", "Model 2", etc.
-            
-        Returns:
-        --------
-        fig : matplotlib figure
-        """
         if labels is None:
-            labels = [f"Model {i+1}" for i in range(len(models))]
+            labels = [PlotHelper._get_model_name(m, i) for i, m in enumerate(models)]
         
         n_models = len(models)
-        fig, axes = plt.subplots(1, n_models, figsize=(6 * n_models, 5))
+        if figsize is None:
+            figsize = (6 * n_models, 5)
+        fig, axes = plt.subplots(1, n_models, figsize=figsize)
         
+        # Handle single model case
         if n_models == 1:
             axes = [axes]
         
-        for ax, model, label in zip(axes, models, labels):
-            predictions = model.predict(X)
-            residuals = y - predictions
-            
-            ax.scatter(predictions, residuals, alpha=0.6)
-            ax.axhline(y=0, color='red', linestyle='--', linewidth=1)
-            ax.set_xlabel('Fitted Values')
-            ax.set_ylabel('Residuals')
-            ax.set_title(f'{label} Residuals')
-            ax.grid(alpha=0.3)
+        # Build scatter_kwargs directly from kwargs, with defaults
+        scatter_kwargs = {
+            'alpha': kwargs.get('alpha', 0.6),
+        }
+        if 'color' in kwargs:
+            scatter_kwargs['color'] = kwargs['color']
+        if 's' in kwargs:
+            scatter_kwargs['s'] = kwargs['s']
         
-        fig.suptitle(
-            'Residual Comparison Across Models',
-            fontsize=14,
-            y=1.02
-        )
+        for ax, model, label in zip(axes, models, labels):
+            try:
+                predictions = model.predict(X).ravel()
+                residuals = y - predictions
+                
+                ax.scatter(predictions, residuals, **scatter_kwargs)
+                ax.axhline(y=0, color='red', linestyle='--', linewidth=1)
+                ax.set_xlabel('Fitted Values')
+                ax.set_ylabel('Residuals')
+                ax.set_title(f'{label}')
+                ax.grid(alpha=0.3)
+            except Exception as e:
+                ax.text(0.5, 0.5, f'Error: {str(e)}', 
+                       ha='center', va='center', transform=ax.transAxes)
+        
+        fig.suptitle('Residual Comparison', fontsize=14, y=1.02)
         plt.tight_layout()
         
         return fig
-
+    
     @staticmethod
-    def plot_comprehensive_comparison(models, X, y, labels=None):
-        """
-        Create a comprehensive 2x2 comparison dashboard for models.
-        
-        Parameters:
-        -----------
-        models : list
-            List of fitted model objects
-        X : array-like
-            Feature matrix for predictions
-        y : array-like
-            Observed values
-        labels : list, optional
-            Labels for each model. If None, uses "Model 1", "Model 2", etc.
-            
-        Returns:
-        --------
-        fig : matplotlib figure
-        """
+    def plot_comprehensive_comparison(models, X, y, labels=None, figsize=(14, 10)):
+        """Create a 2x2 dashboard with all comparisons."""
         if labels is None:
-            labels = [f"Model {i+1}" for i in range(len(models))]
+            labels = [PlotHelper._get_model_name(m, i) for i, m in enumerate(models)]
         
-        fig, axes = plt.subplots(2, 2, figsize=(14, 10))
+        # Create figure
+        fig, axes = plt.subplots(2, 2, figsize=figsize)
         
-        # Coefficient comparison
+        # 1. Coefficients
         PlotHelper.plot_coefficients_comparison(models, labels, ax=axes[0, 0])
         
-        # Metrics comparison
+        # 2. Metrics
         PlotHelper.plot_model_metrics(models, labels, ax=axes[0, 1])
         
-        # Predictions comparison
-        PlotHelper.plot_predictions_comparison(
-            models,
-            X,
-            y,
-            labels,
-            ax=axes[1, 0]
-        )
+        # 3. Predictions
+        PlotHelper.plot_predictions_comparison(models, X, y, labels, ax=axes[1, 0])
         
-        # R² comparison as horizontal bar
-        r2_values = [m.r_squared() for m in models]
+        # 4. R² comparison
+        r2_values = [PlotHelper._get_metric_value(m, 'r_squared') for m in models]
         axes[1, 1].barh(labels, r2_values, alpha=0.8)
         axes[1, 1].set_xlabel('R² Value')
-        axes[1, 1].set_title('R² Comparison (Higher is Better)')
+        axes[1, 1].set_title('R² Comparison')
         axes[1, 1].set_xlim(0, 1)
         axes[1, 1].grid(axis='x', alpha=0.3)
         
-        fig.suptitle(
-            'Comprehensive Model Comparison Dashboard',
-            fontsize=16,
-            y=0.995
-        )
+        fig.suptitle('Model Comparison Dashboard', fontsize=16, y=0.995)
         plt.tight_layout()
         
         return fig
