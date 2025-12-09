@@ -29,3 +29,19 @@ class BaseModel(ABC):
         Predict using model parameters.
         """
         raise NotImplementedError
+    # Property accessors for encapsulation
+    @property
+    def params(self):
+        """Get model coefficients."""
+        return self.params_
+
+    @property
+    def n_obs(self):
+        """Get number of observations."""
+        return self.n_obs_
+
+    @property
+    def n_features(self):
+        """Get number of features."""
+        return self.n_features_
+

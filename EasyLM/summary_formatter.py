@@ -48,3 +48,15 @@ class SummaryFormatter:
         buf.append(f"AIC: {self.float_format.format(info.get('aic'))}")
         buf.append(f"BIC: {self.float_format.format(info.get('bic'))}")
         return "\n".join(buf)
+
+    def __repr__(self):
+        """Developer representation."""
+        return f"SummaryFormatter(float_format='{self.float_format}')"
+
+    def __str__(self):
+        """User-friendly description."""
+        return f"SummaryFormatter for regression output"
+
+    def __call__(self, coef_dict, info):
+        """Make formatter callable - allows formatter(coef_dict, info)."""
+        return self.format(coef_dict, info)

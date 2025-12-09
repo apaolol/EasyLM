@@ -64,3 +64,21 @@ class ModelComparator:
                 all_coefs[label] = np.array([np.nan]*maxlen) # if way _params fill it with NaN
         df = pd.DataFrame(dict((k, np.pad(v, (0, maxlen - len(v)), constant_values=np.nan)) for k, v in all_coefs.items())) # build df from dict
         return df
+   
+#dunder mifflin
+    def __repr__(self):
+        """Developer representation."""
+        return f"ModelComparator(n_models={len(self.models)})"
+
+    def __str__(self):
+        """User-friendly string with comparison table."""
+        df = self.compare()
+        return f"Model Comparison ({len(self.models)} models):\n{df.to_string()}"
+
+    def __len__(self):
+        """Return number of models being compared."""
+        return len(self.models)
+
+    def __getitem__(self, idx):
+        """Get model by index - allows comparator[0], comparator[1], etc."""
+        return self.models[idx]

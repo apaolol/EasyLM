@@ -95,3 +95,47 @@ class LinearModel(BaseModel):
         if not self.is_fitted:
             raise FitError("Model not fitted.")
         return self._stats.compute_r_squared()
+    
+# dunder kalimot hahaha
+    
+    def __repr__(self):
+        """Developer-friendly representation."""
+        status = "fitted" if self.is_fitted else "not fitted"
+        if self.is_fitted:
+            return f"LinearModel(n_features={self.n_features_}, n_obs={self.n_obs_}, {status})"
+        return f"LinearModel(add_intercept={self.add_intercept}, {status})"
+
+    def __str__(self):
+        """User-friendly string representation."""
+        if not self.is_fitted:
+            return "LinearModel (not fitted yet)"
+        return (f"LinearModel: {self.n_features_} parameters, "
+                f"{self.n_obs_} observations, R²={self.r_squared():.4f}")
+
+    def __eq__(self, other):
+        """Equality comparison based on coefficients (polymorphism demo)."""
+        if not isinstance(other, LinearModel):
+            return NotImplemented
+        if not (self.is_fitted and other.is_fitted):
+            return False
+        return np.allclose(self.params_, other.params_, rtol=1e-5)
+
+    def __lt__(self, other):
+        """Less-than comparison by AIC - lower AIC is better (polymorphism demo)."""
+        if not isinstance(other, LinearModel):
+            return NotImplemented
+        if not (self.is_fitted and other.is_fitted):
+            raise FitError("Both models must be fitted for comparison")
+        return self.aic() < other.aic()
+
+    def __len__(self):
+        """Return number of observations."""
+        if not self.is_fitted:
+            return 0
+        return self.n_obs_
+
+    def __getitem__(self, idx):
+        """Get coefficient by index - allows model[0], model[1], etc."""
+        if not self.is_fitted:
+            raise PredictError("Model not fitted")
+        return self.params_[idx]

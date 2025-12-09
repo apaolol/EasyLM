@@ -123,3 +123,21 @@ class RegressionStats:
             "bic": float(self.compute_bic()),
             "r_squared": float(self.compute_r_squared()),
         }
+
+
+    def __repr__(self):
+        """Developer representation."""
+        return (f"RegressionStats(n_obs={self.n_obs}, n_params={self.n_params}, "
+                f"R²={self.compute_r_squared():.4f})")
+
+    def __str__(self):
+        """User-friendly summary."""
+        return (f"Regression Statistics:\n"
+                f"  Observations: {self.n_obs}\n"
+                f"  Parameters: {self.n_params}\n"
+                f"  R-squared: {self.compute_r_squared():.4f}\n"
+                f"  AIC: {self.compute_aic():.2f}")
+
+    def __len__(self):
+        """Return number of observations."""
+        return self.n_obs
