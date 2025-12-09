@@ -3,7 +3,7 @@ requires = ["setuptools>=45", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "EasyLM"
+name = "amoang-easylm"
 version = "0.1.0"
 description = "R-style linear regression in Python"
 authors = [{name = "Kyle"}]
@@ -17,4 +17,4 @@ dependencies = [
 
 [tool.setuptools.packages.find]
 where = ["."]
-include = ["EasyLM*"]
+include = ["EasyLM*"] 
