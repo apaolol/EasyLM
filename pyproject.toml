@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "amoang-easylm"
-version = "0.1.5"
+version = "0.1.6"
 description = "R-style linear regression in Python with comprehensive statistics and visualizations"
 readme = "README.md"
 authors = [

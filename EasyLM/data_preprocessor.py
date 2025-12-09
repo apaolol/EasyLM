@@ -31,9 +31,9 @@ class DataPreprocessor:
         ones = np.ones((X.shape[0], 1))  # take shape of x
         return np.hstack([ones, X])  # stack ones to x 
         '''
-        By adding this column, the regression solver (np.linalg.lstsq) can estimate 
-        β₀ along with the other coefficients.
-        '''
+By adding this column, the regression solver (np.linalg.lstsq) can estimate 
+ β₀ along with the other coefficients.
+'''
     
     @staticmethod
     def prepare_features(X, add_intercept=True):
