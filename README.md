@@ -79,12 +79,7 @@ BIC: 9.9465
 
 Linear regression fits the model:
 
-
-
-\[
-y = \beta_0 + \beta_1x_1 + \beta_2x_2 + \dots + \varepsilon
-\]
-
+`y = β₀ + β₁x₁ + β₂x₂ + … + ε`
 
 
 - **y**: target variable  
