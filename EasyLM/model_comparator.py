@@ -18,13 +18,13 @@ class ModelComparator:
       - summary() (optional)
     """
 
-    def __init__(self, models: List):
+    def __init__(self, models: List): # list of fitted models
         self.models = models
 
     def compare(self):
         rows = []
-        for i, m in enumerate(self.models):
-            label = getattr(m, "name", f"Model_{i}")
+        for i, m in enumerate(self.models): #loop thru models
+            label = getattr(m, "name", f"Model_{i}") # try ti get model name, f way name, mahimog Model_i
             try:
                 aic = m.aic()
             except Exception:
@@ -37,7 +37,7 @@ class ModelComparator:
                 r2 = m.r_squared()
             except Exception:
                 r2 = float("nan")
-            rows.append({
+            rows.append({ # update empty list to store metrics 
                 "model": label,
                 "aic": aic,
                 "bic": bic,
@@ -45,22 +45,22 @@ class ModelComparator:
                 "n_params": getattr(m, "n_features_", None),
                 "n_obs": getattr(m, "n_obs_", None),
             })
-        return pd.DataFrame(rows).set_index("model")
+        return pd.DataFrame(rows).set_index("model") # create df wtih all metrics from rows(list)
 
     def coef_table(self):
         """
         Return a combined DataFrame of coefficients for all models.
         Non-matching coefficient counts are filled with NaN.
         """
-        all_coefs = {}
-        maxlen = 0
-        for i, m in enumerate(self.models):
-            label = getattr(m, "name", f"Model_{i}")
-            try:
+        all_coefs = {} # dict to store coef for esahc model
+        maxlen = 0 # track max number of coef
+        for i, m in enumerate(self.models): #loop thru models
+            label = getattr(m, "name", f"Model_{i}") #same logic if no name fallback to modeli
+            try: # get models coefficeints(_params)
                 coefs = getattr(m, "params_")
-                all_coefs[label] = coefs
-                maxlen = max(maxlen, len(coefs))
+                all_coefs[label] = coefs # stores it here
+                maxlen = max(maxlen, len(coefs)) # update maxlen
             except Exception:
-                all_coefs[label] = np.array([np.nan]*maxlen)
-        df = pd.DataFrame(dict((k, np.pad(v, (0, maxlen - len(v)), constant_values=np.nan)) for k, v in all_coefs.items()))
+                all_coefs[label] = np.array([np.nan]*maxlen) # if way _params fill it with NaN
+        df = pd.DataFrame(dict((k, np.pad(v, (0, maxlen - len(v)), constant_values=np.nan)) for k, v in all_coefs.items())) # build df from dict
         return df

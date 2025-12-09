@@ -10,7 +10,7 @@ Utility functions for EasyLM.
 import numpy as np
 import pandas as pd
 
-def add_constant(X, prepend=True):
+def add_constant(X, prepend=True): #yawar sunular to preprocessor
     """
     Add intercept column of ones to X.
     Accepts numpy arrays or pandas DataFrame/Series.
@@ -26,7 +26,7 @@ def add_constant(X, prepend=True):
     else:
         return np.hstack([arr, ones])
 
-def check_array(x, name="array"):
+def check_array(x, name="array"): #yawa
     """
     Ensure input is a numpy 2D array (or 1D reshaped).
     Accepts numpy arrays, lists/tuples, and pandas DataFrame/Series.
@@ -69,4 +69,5 @@ def design_from_df(df, predictors, add_intercept=True):
         return add_constant(X, prepend=True)
     else:
         return check_array(X, "X")
-
+'''THIS WAS THE FIRST, NAA NI BEFORE DATAPREPROCESS CLASS. WHY KEEP BOTH? FOR BACKWARDS COMPATABILITY. IF WE REMOVE ENTIRELY,
+WE HAVE TO ENTIRELY REFACTOR CERTAIN CLASSES WE HAVE NOT MODIFIED OR TOUCHED SINCE THE GENSIS OF THIS PROJECT.'''

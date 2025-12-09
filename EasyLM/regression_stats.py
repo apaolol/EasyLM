@@ -30,26 +30,26 @@ class RegressionStats:
         self.X = X
         self.y = y
         self.coefficients = coefficients
-        self.n_obs = X.shape[0]
-        self.n_params = X.shape[1]
+        self.n_obs = X.shape[0] # number of rows
+        self.n_params = X.shape[1] # number of columns features + intercept
         
         # Compute derived quantities
-        self.fitted_values = X @ coefficients
-        self.residuals = y - self.fitted_values
-        self.df_resid = max(0, self.n_obs - self.n_params)
+        self.fitted_values = X @ coefficients # matrix mult @ is python's matrix mul operator
+        self.residuals = y - self.fitted_values # actual - predicted(errors)
+        self.df_resid = max(0, self.n_obs - self.n_params) # degrees of freedom
         
         # Compute core statistics
-        self.rss = self._compute_rss(lstsq_residuals)
+        self.rss = self._compute_rss(lstsq_residuals) # grabs rss from least sqrs
         self.sigma2 = self._compute_sigma2()
         self.cov_matrix = self._compute_covariance()
     
     def _compute_rss(self, lstsq_residuals):
         """Extract RSS from lstsq or compute manually."""
-        if lstsq_residuals.size:
-            return float(lstsq_residuals[0])
-        return float(np.sum(self.residuals ** 2))
+        if lstsq_residuals.size: #if naa sa lstsq
+            return float(lstsq_residuals[0]) 
+        return float(np.sum(self.residuals ** 2))# if wala nara!
     
-    def _compute_sigma2(self):
+    def _compute_sigma2(self): # compute residual variance
         """Compute residual variance."""
         if self.df_resid > 0:
             return self.rss / self.df_resid
@@ -58,31 +58,31 @@ class RegressionStats:
     def _compute_covariance(self):
         """Compute parameter covariance matrix with safety."""
         try:
-            xtx_inv = np.linalg.inv(self.X.T @ self.X)
+            xtx_inv = np.linalg.inv(self.X.T @ self.X) # transposed matrix mult x
             return xtx_inv * self.sigma2
         except np.linalg.LinAlgError:
             return np.full((self.n_params, self.n_params), np.nan)
     
-    def get_standard_errors(self):
+    def get_standard_errors(self): # diagonals of covariance matrix
         """Extract standard errors from covariance matrix."""
         if self.cov_matrix is None or np.all(np.isnan(self.cov_matrix)):
             return np.full_like(self.coefficients, np.nan)
-        diagonal = np.diag(self.cov_matrix)
-        return np.sqrt(np.clip(diagonal, a_min=0, a_max=None))
+        diagonal = np.diag(self.cov_matrix) # get diag
+        return np.sqrt(np.clip(diagonal, a_min=0, a_max=None)) # squaroot ang diagonals, np.clip ensured no negative
     
     def get_t_values(self):
         """Compute t-statistics."""
-        se = self.get_standard_errors()
-        with np.errstate(divide="ignore", invalid="ignore"):
-            t = np.divide(self.coefficients, se, where=(se != 0))
-            return np.where(se == 0, 0.0, t)
+        se = self.get_standard_errors() # extract se
+        with np.errstate(divide="ignore", invalid="ignore"): #supresses warnings if nay zero division
+            t = np.divide(self.coefficients, se, where=(se != 0)) # divide coefficient by each se, snures na dle 0 ang se. if 0 no divisioon
+            return np.where(se == 0, 0.0, t) # if se kay zero, gina matic turn to 0 ang t-statistic para dle inf, or NaN
     
     def get_p_values(self):
         """Compute p-values from t-statistics."""
-        if self.df_resid == 0:
-            return np.ones_like(self.coefficients)
-        t_vals = self.get_t_values()
-        return 2 * stats.t.sf(np.abs(t_vals), df=self.df_resid)
+        if self.df_resid == 0: # if df nato 0 
+            return np.ones_like(self.coefficients)# ireturn kai array of ones, meaningdle statisticaLLY significant
+        t_vals = self.get_t_values() # get t val
+        return 2 * stats.t.sf(np.abs(t_vals), df=self.df_resid) # 2 tailed test
     
     def get_coefficient_table(self):
         """Generate complete coefficient table."""
@@ -90,27 +90,27 @@ class RegressionStats:
             "coef": self.coefficients,
             "std_err": self.get_standard_errors(),
             "t": self.get_t_values(),
-            "p": self.get_p_values(),
+            "p": self.get_p_values(), 
         }
     
-    def compute_aic(self):
+    def compute_aic(self): # dumduma lower aic = better model
         """Akaike Information Criterion."""
-        if self.rss <= 0:
-            return float("-inf")
-        return 2 * self.n_params + self.n_obs * np.log(self.rss / self.n_obs)
+        if self.rss <= 0: #if zero ang rss(no error)
+            return float("-inf") # model fit so perfect na invalid na sha hahaha
+        return 2 * self.n_params + self.n_obs * np.log(self.rss / self.n_obs) # formula for aic
     
-    def compute_bic(self):
+    def compute_bic(self): # penalizes complexity more than aic
         """Bayesian Information Criterion."""
         if self.rss <= 0:
             return float("-inf")
-        return np.log(self.n_obs) * self.n_params + self.n_obs * np.log(self.rss / self.n_obs)
+        return np.log(self.n_obs) * self.n_params + self.n_obs * np.log(self.rss / self.n_obs) # aic formula
     
     def compute_r_squared(self):
         """Coefficient of determination."""
-        ss_total = float(np.sum((self.y - np.mean(self.y)) ** 2))
-        if ss_total == 0:
-            return 1.0 if self.rss == 0 else np.nan
-        return 1 - self.rss / ss_total
+        ss_total = float(np.sum((self.y - np.mean(self.y)) ** 2)) # sum of squared differences sa each actual value og mean of y
+        if ss_total == 0: # meaning if all y val kay identical
+            return 1.0 if self.rss == 0 else np.nan # return 1 (perfect fit) or not a number
+        return 1 - self.rss / ss_total # formula for rsqrd
     
     def get_summary_info(self):
         """Package all info for summary formatter."""

@@ -12,10 +12,10 @@ class SummaryFormatter:
     Given coefficient arrays and info dict, produce a readable string summary or pandas DataFrame.
     """
 
-    def __init__(self, float_format="{:.4f}"):
+    def __init__(self, float_format="{:.4f}"): # set default format to 4 decimal places
         self.float_format = float_format
 
-    def _coef_dataframe(self, coef_dict):
+    def _coef_dataframe(self, coef_dict): # create dataframe from difference coef arrays
         coef = np.asarray(coef_dict["coef"])
         se = np.asarray(coef_dict["std_err"])
         t = np.asarray(coef_dict["t"])

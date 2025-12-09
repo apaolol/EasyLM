@@ -1,3 +1,4 @@
+# BASE MODEL
 """
 BaseModel abstract class.
 """
@@ -10,20 +11,20 @@ class BaseModel(ABC):
     """
 
     def __init__(self):
-        self.is_fitted = False
-        self.params_ = None
-        self.n_obs_ = None
-        self.n_features_ = None
+        self.is_fitted = False # default has the model been trained? answer: no
+        self.params_ = None # models coefficients
+        self.n_obs_ = None #model'snumber of observarions
+        self.n_features_ = None #number of features and/or parameters
 
     @abstractmethod
-    def fit(self, X, y):
+    def fit(self, X, y): # forces child classes to implement fit else mag error
         """
         Fit the model. Must set is_fitted True and params_.
         """
         raise NotImplementedError
 
     @abstractmethod
-    def predict(self, X):
+    def predict(self, X): # same forces child classes to rpedict kay duhhhhhh no  prediction = no actual model dbna
         """
         Predict using model parameters.
         """

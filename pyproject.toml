@@ -4,15 +4,15 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "amoang-easylm"
-version = "0.1.4"
+version = "0.1.5"
 description = "R-style linear regression in Python with comprehensive statistics and visualizations"
 readme = "README.md"
 authors = [
-    {name = "Kyle Paolo G Bautro", email = "kyleforthedamaged@gmail.com"},
-    {name = "Carl Dane Penano"},
-    {name = "Joshua Oraiz"},
-    {name = "Symond Ridge Fernandez"},
-    {name = "Yochanan Bangoy"}
+    { name = "Kyle Paolo G Bautro", email = "kyleforthedamaged@example.com" },
+    { name = "Carl Dane Penano", email = "carl.penano@example.com" },
+    { name = "Joshua Oraiz", email = "oraiz.joshuadavid@example.com" },
+    { name = "Symond Ridge Fernandez", email = "symond.fernandez@example.com" },
+    { name = "Yochanan Bangoy", email = "mahojowk@gmail.com" }
 ]
 license = {text = "MIT"}
 requires-python = ">=3.7"
