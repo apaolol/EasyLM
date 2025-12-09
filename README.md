@@ -21,19 +21,24 @@ EasyLM is a Python library for linear regression with R-style summaries, automat
 ## Installation
 
 Install directly from PyPI:
+## Installation
+
+You can install from TestPyPI:
 
 ```bash
 pip install amoang-easylm
+```
 
 Or install the latest version from GitHub:
-
 ```bash
 git clone https://github.com/yourusername/EasyLM.git
 cd EasyLM
 pip install -r requirements.txt
 pip install -e .
+```
 
-
+## Basic Usage
+```python
 from EasyLM import LinearModel
 import numpy as np
 
@@ -47,4 +52,182 @@ model.fit(X, y)
 
 # View R-style summary
 print(model.summary())
+```
+## Example Output
 
+After fitting a simple model, you’ll see an R‑style summary:
+
+```text
+Call: EasyLM LinearModel
+
+Observations: 5
+Parameters: 2
+Degrees of Freedom (resid): 3
+
+Coefficients:
+   Coef.  Std.Err.  t value  Pr(>|t|)
+0  1.5000    0.7906   1.8974    0.1535
+1  0.7000    0.2280   3.0702    0.0547
+
+Residual variance (sigma^2): 0.7000
+R-squared: 0.7588
+AIC: 10.7319
+BIC: 9.9465 
+```
+
+## Key Concepts
+
+Linear regression fits the model:
+
+
+
+\[
+y = \beta_0 + \beta_1x_1 + \beta_2x_2 + \dots + \varepsilon
+\]
+
+
+
+- **y**: target variable  
+- **x**: features  
+- **β**: coefficients  
+- **ε**: residual error  
+
+### Summary Output
+- **Coef.**: coefficient values  
+- **Std.Err.**: standard error  
+- **t value**: coefficient ÷ Std.Err.  
+- **Pr(>|t|)**: p-value (<0.05 considered significant)  
+- **R²**: variance explained  
+- **AIC/BIC**: model selection metrics  
+- **Residual variance**: remaining error  
+
+
+## Project Structure
+
+```text
+EasyLM/
+├── EasyLM/
+│   ├── __init__.py
+│   ├── linear_model.py
+│   ├── data_preprocessor.py
+│   ├── regression_stats.py
+│   ├── summary_formatter.py
+│   ├── model_comparator.py
+│   ├── plot_helper.py
+│   └── utils.py
+├── tests/
+│   ├── __init__.py
+│   ├── test_linear_model.py
+│   ├── test_model_comparator.py
+│   └── test_utils.py
+├── examples/
+│   └── quickstart.ipynb
+├── README.md
+├── requirements.txt
+├── pyproject.toml
+└── LICENSE
+```
+
+## Core Classes
+## Classes and Their Purpose
+
+| Class            | Purpose                        |
+| ---------------- | ------------------------------ |
+| LinearModel      | Fit and predict linear models  |
+| DataPreprocessor | Validate and transform data    |
+| RegressionStats  | Compute statistical quantities |
+| SummaryFormatter | Generate R-style summaries     |
+| ModelComparator  | Compare multiple models        |
+| PlotHelper       | Visualization utilities        |
+
+## Testing
+
+Run tests with **pytest**:
+
+```bash
+pip install pytest
+pytest tests/ -v
+pytest --cov=EasyLM tests/ 
+```
+
+## Comparison with Alternatives
+## 📊 Comparison with Alternatives
+
+| Feature            | EasyLM        | scikit-learn | statsmodels |
+| ------------------ | ------------- | ------------ | ----------- |
+| R-style summaries  | ✅            | ❌           | ✅          |
+| Easy to learn      | ✅            | ✅           | ❌          |
+| Statistical tests  | ✅            | ❌           | ✅          |
+| Model comparison   | ✅            | ❌           | ⚠️          |
+| Lightweight        | ✅            | ❌           | ❌          |
+| Extensible         | ✅            | ✅           | ✅          |
+
+## When to Use
+
+**Use EasyLM if you want:**
+- R‑style regression output in Python  
+- Easy model comparison  
+- Teaching/learning regression concepts  
+- Clean, extensible code  
+
+**Use alternatives when you need:**
+- Production ML pipelines → scikit‑learn  
+- Advanced econometrics → statsmodels  
+- Deep learning → TensorFlow/PyTorch  
+
+## Contributors
+
+### Core Team
+**[Kyle Paolo G Bautro]** – Initial work & Architecture  
+- Designed clean separation of concerns  
+- Implemented RegressionStats engine  
+- Created visualization tools  
+
+**[Carl Dane Penano, Joshua Oraiz, Symond Ridge Fernandez]** – Testing & Documentation  
+- Built comprehensive test suite  
+- Wrote user documentation  
+- Quality assurance  
+
+**[Yochanan Bangoy]** – Features & Extensions  
+- Refactored plotting method  
+- Enhanced plotting capabilities  
+- Performance optimizations  
+
+### Special Thanks
+- Inspired by R's lm() function  
+- Documentation style influenced by scikit-learn  
+- Jesus Christ
+
+---
+
+## License
+This project is licensed under the MIT License – see the LICENSE file for details.
+
+---
+
+## Support
+- Email: kyleforthedamaged@gmail.com
+- Issues: GitHub Issues  
+- Discussions: GitHub Discussions  
+
+---
+
+## Roadmap
+
+**Version 1.0 (Current)**  
+- Basic OLS regression  
+- R-style summaries  
+- Model comparison  
+- Visualization tools  
+
+**Version 1.1 (Planned)**  
+- Weighted least squares  
+- Ridge & Lasso regression  
+- Cross-validation utilities  
+- Polynomial features  
+
+**Version 2.0 (Future)**  
+- Generalized Linear Models (GLM)  
+- Time series regression  
+- Mixed effects models  
+- Interactive web dashboard  
